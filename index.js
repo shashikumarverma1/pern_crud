@@ -1,9 +1,10 @@
 import express from "express";
-import { Sequelize, DataTypes, where } from 'sequelize';
-import cors from "cors"
+import { Sequelize, DataTypes } from 'sequelize';
+import cors from "cors";
+
 const app = express();
 
-// router
+// Router
 const router = express.Router();
 
 // Function to create the Sequelize connection
@@ -24,22 +25,24 @@ const createUserModel = (sequelize) => {
         email: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true
+            // unique: true
         },
         employId: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true
+            // unique: true
         },
     });
 };
-let User=null;
+
+let User = null;
+
 // Function to establish database connection and sync model
 const connectAndSync = async () => {
     const sequelize = createConnection();
     try {
         await sequelize.authenticate();
-         User = createUserModel(sequelize);
+        User = createUserModel(sequelize);
         await sequelize.sync();
         return { sequelize, User };
     } catch (error) {
@@ -50,41 +53,18 @@ const connectAndSync = async () => {
 
 // Start the server after establishing database connection
 connectAndSync().then(({ sequelize, User }) => {
-    // Define routes inside this callback
-    router.get("/user", GetAllUsers);
-    router.post("/adduser", async function(req, res){
-        const {name , email , employId }=req.body
-        try{
-        //  const res=await User.findOne({
-        //     where:{
-        //         employId:employId
-        //     }
-        //  })
-        let res= User.create(req.body)
-        console.log(name ,email,employId , "adeed suces")
-        //  if(!res){
-          
-        //  }
-        //  console.log(user , "got")
-         // console.log(req, res)
-     
-        }catch(err){
-         console.log(err)
-        }
-     });
+    router.get("/GetAllUsers", GetAllUsers);
 
-     router.put("/update:employId", async function(req, res){
-        // const id=req.params.employId
-    //    const updateUser=await User.update(req.body , {where:{'employId':id}})
-     console.log(req.body , 'updateUser')
-      
-    });
-    app.use(express.json())
-    app.use(cors())
-    // Use the router in the application
+    router.post("/AddUser",AddUser);
+
+    router.put("/updateUser/:id", updateUser);
+    
+    router.delete("/deleteUser/:id", deleteUser);
+
+    app.use(express.json());
+    app.use(cors());
     app.use(router);
 
-    // Start the server
     app.listen(6000, () => {
         console.log("Server is running at port 6000");
     });
@@ -92,20 +72,56 @@ connectAndSync().then(({ sequelize, User }) => {
     console.error('Error establishing database connection:', error);
 });
 
-const GetAllUsers =async(req, res)=>{
-   try{
-    const user=await User.findAll()
-    console.log(user , "got")
-    // console.log(req, res)
+const GetAllUsers = async (req, res) => {
+    try {
+        const users = await User.findAll();
+        res.json(users);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
 
-   }catch(err){
-    console.log(err)
-   }
-}
+const updateUser = async (req, res) => {
+    const id = req.params.id;
+    try {
+        let re = await User.findOne({ where: { id: id } });
+        // console.log(re, "reeeeee");
+        // return
+        const [updated] = await User.update(req.body, { where: { id: id } });
+        if (updated) {
+            res.json({ message: "User updated successfully" });
+        } else {
+            res.status(404).json({ error: "User not found" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
 
-const updateUser=async(req, res)=>{
-    const id=req.params.employId
-   const updateUser=await User.update(req.body , {where:{'employId':id}})
- console.log(updateUser , 'updateUser')
-  
+const deleteUser = async (req, res) => {
+    const id = req.params.id;
+    try {
+        const user = await User.findOne({ where: { id: id } });
+        console.log(user , "user")
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        
+        await user.destroy();
+        res.json({ message: "User deleted successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+const AddUser=async (req, res) =>{
+    try {
+        const newUser = await User.create(req.body);
+        res.status(201).json(newUser);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
 }
