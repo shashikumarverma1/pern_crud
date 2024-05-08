@@ -63,7 +63,7 @@ const updat=async(id , updateData)=>{
 }
 
 // const id = 1;
-const deleteData = async(id )=>{ 
+const deleteData = async(id:any)=>{ 
   try {
      // Assuming you want to delete user with ID 1
     const response = await axios.delete(`https://jsonplaceholder.typicode.com/users/${id}`);
