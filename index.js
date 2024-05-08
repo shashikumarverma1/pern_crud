@@ -5,6 +5,7 @@ import { listAll } from "./clientController/listAll.js";
 import { create } from "./clientController/create.js";
 import { update } from "./clientController/update.js";
 import { remove } from "./clientController/remove.js";
+import { read } from "./clientController/read.js";
 const app = express();
 
 // Router
@@ -17,7 +18,6 @@ const createConnection = () => {
         dialect: "postgres"
     });
 };
-
 // Function to define the User model
 const createUserModel = (sequelize) => {
     return sequelize.define('User', {
@@ -36,23 +36,25 @@ const createUserModel = (sequelize) => {
         },
     });
 };
-const createBookModel = (sequelize) => {
-    return sequelize.define('Book', {
+
+const createTeaModel = (sequelize) => {
+    return sequelize.define('Tea', {
         name: {
             type: DataTypes.STRING,
             // allowNull: false
         },
-        description: {
-            type: DataTypes.STRING,
-            // allowNull: false,
-            // unique: true
-        },
+        // description: {
+        //     type: DataTypes.STRING,
+        //     // allowNull: false,
+        //     // unique: true
+        // },
      
     });
 };
 
-let User = null;
-let Book = null;
+let User = null; 
+let Tea = null;
+
 
 // Function to establish database connection and sync model
 const connectAndSync = async () => {
@@ -60,7 +62,8 @@ const connectAndSync = async () => {
     try {
         await sequelize.authenticate();
         User = createUserModel(sequelize);
-        Book=createBookModel(sequelize);
+        Tea=createTeaModel(sequelize)
+      
         await sequelize.sync();
         return { sequelize };
     } catch (error) {
@@ -80,6 +83,11 @@ connectAndSync().then(({ sequelize,  }) => {
     router.post(`/Book`,async (req , res)=>create(Book  , req , res))
     router.put(`/Book/:id`, async (req , res)=>update(Book  , req , res))
     router.delete(`/Book/:id`, async (req , res)=>remove(Book  , req , res))
+    router.get(`/Tea`, async (req , res)=>listAll(Tea , req , res) )
+    router.get(`/Tea/:id`, async (req , res)=>read(Tea  , req , res))
+    router.post(`/Tea`,async (req , res)=>create(Tea  , req , res))
+    router.put(`/Tea/:id`, async (req , res)=>update(Tea  , req , res))
+    router.delete(`/Tea/:id`, async (req , res)=>remove(Tea  , req , res))
    
 
     app.use(express.json());
@@ -104,3 +112,19 @@ function abc(User){
  }
 }
   
+// export const cowModel = (sequelize) => {
+//     console.log("cow")
+//     return
+//     return sequelize.define('Cow', {
+//         name: {
+//             type: DataTypes.STRING,
+//             // allowNull: false
+//         },
+//         // description: {
+//         //     type: DataTypes.STRING,
+//         //     // allowNull: false,
+//         //     // unique: true
+//         // },
+     
+//     });
+// };

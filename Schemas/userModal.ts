@@ -1,7 +1,4 @@
-import { Sequelize, DataTypes } from 'sequelize';
-import { createConnection } from '../pg/pg.js';
-
- const sequelize = createConnection();
+import { DataTypes } from "sequelize";
 
  export const createUserModel = (sequelize :any) => {
     return sequelize.define('User', {

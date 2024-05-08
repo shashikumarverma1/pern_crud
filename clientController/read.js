@@ -1,11 +1,12 @@
-const { migrate } = require('./migrate');
+// const { migrate } = require('./migrate');
 
-const read = async (Model, req, res) => {
+export const read = async (Model, req, res) => {
   // Find document by id
   let result = await Model.findOne({
     _id: req.params.id,
     removed: false,
-  }).exec();
+  })
+  // .exec();
   // If no results found, return document not found
   if (!result) {
     return res.status(404).json({
@@ -26,4 +27,4 @@ const read = async (Model, req, res) => {
   }
 };
 
-module.exports = read;
+// module.exports = read;
