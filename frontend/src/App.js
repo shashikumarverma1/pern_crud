@@ -1,7 +1,22 @@
 import logo from './logo.svg';
 import './App.css';
-
+import axios from 'axios'
+import { useEffect } from 'react';
 function App() {
+  const readOne=async(id)=>{
+  
+    try{
+   const data=  await axios.get(`https://jsonplaceholder.typicode.com/users/${id}`)
+   console.log(data)
+  //  return data;
+    }catch(err){
+        console.log(err)
+    }
+  }
+
+useEffect(()=>{
+  readOne(2)
+},[])
   return (
     <div className="App">
       <header className="App-header">
