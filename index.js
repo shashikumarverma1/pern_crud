@@ -1,7 +1,10 @@
 import express from "express";
 import { Sequelize, DataTypes } from 'sequelize';
 import cors from "cors";
-
+import { listAll } from "./clientController/listAll.js";
+import { create } from "./clientController/create.js";
+import { update } from "./clientController/update.js";
+import { remove } from "./clientController/remove.js";
 const app = express();
 
 // Router
@@ -20,22 +23,36 @@ const createUserModel = (sequelize) => {
     return sequelize.define('User', {
         name: {
             type: DataTypes.STRING,
-            allowNull: false
+            // allowNull: false
         },
         email: {
             type: DataTypes.STRING,
-            allowNull: false,
+            // allowNull: false,
             // unique: true
         },
         employId: {
             type: DataTypes.STRING,
-            allowNull: false,
+         
+        },
+    });
+};
+const createBookModel = (sequelize) => {
+    return sequelize.define('Book', {
+        name: {
+            type: DataTypes.STRING,
+            // allowNull: false
+        },
+        description: {
+            type: DataTypes.STRING,
+            // allowNull: false,
             // unique: true
         },
+     
     });
 };
 
 let User = null;
+let Book = null;
 
 // Function to establish database connection and sync model
 const connectAndSync = async () => {
@@ -43,8 +60,9 @@ const connectAndSync = async () => {
     try {
         await sequelize.authenticate();
         User = createUserModel(sequelize);
+        Book=createBookModel(sequelize);
         await sequelize.sync();
-        return { sequelize, User };
+        return { sequelize };
     } catch (error) {
         console.error('Unable to connect to the database:', error);
         throw error;
@@ -52,14 +70,17 @@ const connectAndSync = async () => {
 };
 
 // Start the server after establishing database connection
-connectAndSync().then(({ sequelize, User }) => {
-    router.get("/GetAllUsers", GetAllUsers);
-
-    router.post("/AddUser",AddUser);
-
-    router.put("/updateUser/:id", updateUser);
-    
-    router.delete("/deleteUser/:id", deleteUser);
+connectAndSync().then(({ sequelize,  }) => {
+   
+    router.get(`/user`, async (req , res)=>listAll(User , req , res) )
+    router.post(`/user`,async (req , res)=>create(User , req , res))
+    router.put(`/user/:id`, async (req , res)=>update(User  , req , res))
+    router.delete(`/user/:id`, async (req , res)=>remove(User  , req , res))
+    router.get(`/Book`, async (req , res)=>listAll(Book , req , res) )
+    router.post(`/Book`,async (req , res)=>create(Book  , req , res))
+    router.put(`/Book/:id`, async (req , res)=>update(Book  , req , res))
+    router.delete(`/Book/:id`, async (req , res)=>remove(Book  , req , res))
+   
 
     app.use(express.json());
     app.use(cors());
@@ -72,56 +93,14 @@ connectAndSync().then(({ sequelize, User }) => {
     console.error('Error establishing database connection:', error);
 });
 
-const GetAllUsers = async (req, res) => {
-    try {
-        const users = await User.findAll();
-        res.json(users);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-const updateUser = async (req, res) => {
-    const id = req.params.id;
-    try {
-        let re = await User.findOne({ where: { id: id } });
-        // console.log(re, "reeeeee");
-        // return
-        const [updated] = await User.update(req.body, { where: { id: id } });
-        if (updated) {
-            res.json({ message: "User updated successfully" });
-        } else {
-            res.status(404).json({ error: "User not found" });
-        }
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-const deleteUser = async (req, res) => {
-    const id = req.params.id;
-    try {
-        const user = await User.findOne({ where: { id: id } });
-        console.log(user , "user")
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        
-        await user.destroy();
-        res.json({ message: "User deleted successfully" });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-const AddUser=async (req, res) =>{
-    try {
-        const newUser = await User.create(req.body);
-        res.status(201).json(newUser);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
+function abc(User){
+ try{
+ return  [ router.get(`/GetAll${User}`, async (req , res)=>listAll(User , req , res) ),
+    router.post(`/Add${User}`,async (req , res)=>create(User , req , res)),
+    router.put(`/update${User}/:id`, async (req , res)=>update(User , req , res)),
+    router.delete(`/delete${User}/:id`, async (req , res)=>remove(User , req , res)),]
+ }catch(err){
+    console.log(err)
+ }
 }
+  

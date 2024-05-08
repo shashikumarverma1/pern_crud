@@ -1,16 +1,22 @@
 import { Sequelize } from 'sequelize'
+import { createUserModel } from '../Schemas/userModal.js';
 
-
-const sequelize = new Sequelize('postgres', 'user', 'secret', {
-    host: 'localhost',
-    dialect:"postgres" /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
-  })
+export const createConnection = () => {
+  return new Sequelize('postgres', 'user', 'secret', {
+      host: 'localhost',
+      dialect: "postgres"
+  });
+};
 //   postgres://user:secret@localhost:5432/postgres
- export const connection =async()=>{
-    try {
-        await sequelize.authenticate();
-        console.log('Connection has been established successfully.');
-      } catch (error) {
-        console.error('Unable to connect to the database:', error);
-      }
+export const connectAndSync = async (User) => {
+  const sequelize = createConnection();
+  try {
+      await sequelize.authenticate();
+      User = createUserModel(sequelize);
+      await sequelize.sync();
+      return { sequelize, User };
+  } catch (error) {
+      console.error('Unable to connect to the database:', error);
+      throw error;
   }
+};
